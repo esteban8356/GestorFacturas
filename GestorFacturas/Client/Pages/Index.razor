@@ -1,0 +1,86 @@
+﻿@page "/"
+@inject HttpClient Http
+
+<EditForm Model="NuevoCliente">
+    <h1>Agregar Cliente</h1>
+    Nombre del Cliente:
+    <InputText @bind-Value="NuevoCliente.ClienteName"></InputText><br /><br />
+    Correo del Cliente:
+    <InputText @bind-Value="NuevoCliente.ClienteEmail"></InputText><br /><br />
+
+    <button @onclick="(() => Crearcliente(NuevoCliente))">Crear Cliente</button><br /><br /><br />
+</EditForm>
+
+<EditForm Model="NuevoCliente">
+    <h1>Actualizar Cliente</h1>
+    ID del Cliente:
+    <InputNumber @bind-Value="NuevoCliente.Id"></InputNumber><br /><br />
+    Nombre del Cliente:
+    <InputText @bind-Value="NuevoCliente.ClienteName"></InputText><br /><br />
+    Correo del Cliente:
+    <InputText @bind-Value="NuevoCliente.ClienteEmail"></InputText><br /><br />
+
+    <button @onclick="async () => await Actualizarcliente(NuevoCliente)">Actualizar Cliente</button><br /><br /><br />
+</EditForm>
+
+<EditForm Model="NuevoCliente">
+    <h1>Eliminar Cliente</h1>
+    ID del Cliente:
+    <InputNumber @bind-Value="NuevoCliente.Id"></InputNumber><br /><br />
+
+    <button @onclick="async () => await Eliminarcliente(NuevoCliente.Id)">Eliminar Cliente</button><br /><br /><br />
+</EditForm>
+
+<h2>Lista de Clientes</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo Electrónico</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cliente in Clientes)
+        {
+            <tr>
+                <td>@cliente.Id</td>
+                <td>@cliente.ClienteName</td>
+                <td>@cliente.ClienteEmail</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    Cliente NuevoCliente = new Cliente();
+    List<Cliente> Clientes = new List<Cliente>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Clientes = await CargarClientes();
+    }
+
+    public async Task<List<Cliente>> CargarClientes()
+    {
+        return await Http.GetFromJsonAsync<List<Cliente>>("api/Cliente");
+    }
+
+    public async Task Crearcliente(Cliente cliente)
+    {
+        var resultado = await Http.PostAsJsonAsync("api/Cliente", cliente);
+        Clientes = await CargarClientes(); 
+    }
+
+    public async Task Actualizarcliente(Cliente cliente)
+    {
+        var resultado = await Http.PutAsJsonAsync($"api/Cliente/{cliente.Id}", cliente);
+        Clientes = await CargarClientes(); 
+    }
+
+    public async Task Eliminarcliente(int id)
+    {
+        var resultado = await Http.DeleteAsync($"api/Cliente/{id}");
+        Clientes = await CargarClientes(); 
+    }
+}

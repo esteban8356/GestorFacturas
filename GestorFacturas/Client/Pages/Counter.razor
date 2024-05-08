@@ -1,0 +1,89 @@
+﻿@page "/counter"
+@inject HttpClient Http
+
+<EditForm Model="NuevoProducto">
+    <h2>Agregar Producto</h2>
+    Nombre del Producto:
+    <InputText @bind-Value="NuevoProducto.Nombre"></InputText><br /><br />
+    Precio del Producto:
+    <InputNumber @bind-Value="NuevoProducto.Precio"></InputNumber><br /><br />
+
+    <button @onclick="() => CrearProducto(NuevoProducto)">Agregar Producto</button><br /><br />
+</EditForm>
+
+<EditForm Model="NuevoProducto">
+    <h2>Actualizar Producto</h2>
+    ID del Producto:
+    <InputNumber @bind-Value="NuevoProducto.Id"></InputNumber><br /><br />
+    Nombre del Producto:
+    <InputText @bind-Value="NuevoProducto.Nombre"></InputText><br /><br />
+    Precio del Producto:
+    <InputNumber @bind-Value="NuevoProducto.Precio"></InputNumber><br /><br />
+
+    <button @onclick="() => ActualizarProducto(NuevoProducto)">Actualizar Producto</button><br /><br />
+</EditForm>
+
+<EditForm Model="NuevoProducto">
+    <h2>Eliminar Producto</h2>
+    ID del Producto:
+    <InputNumber @bind-Value="NuevoProducto.Id"></InputNumber><br /><br />
+
+    <button @onclick="() => EliminarProducto(NuevoProducto.Id)">Eliminar Producto</button><br /><br />
+</EditForm>
+
+<h2>Lista de Productos</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var producto in Productos)
+        {
+            <tr>
+                <td>@producto.Id</td>
+                <td>@producto.Nombre</td>
+                <td>@producto.Precio</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    Producto NuevoProducto = new Producto();
+    List<Producto> Productos = new List<Producto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Productos = await CargarProductos();
+    }
+
+    public async Task<List<Producto>> CargarProductos()
+    {
+        return await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+    }
+
+    public async Task CrearProducto(Producto producto)
+    {
+        var resultado = await Http.PostAsJsonAsync("api/Producto", producto);
+        Productos = await CargarProductos(); 
+    }
+
+    public async Task ActualizarProducto(Producto producto)
+    {
+        var resultado = await Http.PutAsJsonAsync($"api/Producto/{producto.Id}", producto);
+        Productos = await CargarProductos(); 
+    }
+
+    public async Task EliminarProducto(int id)
+    {
+        var resultado = await Http.DeleteAsync($"api/Producto/{id}");
+        Productos = await CargarProductos(); 
+    }
+}
+
+
+

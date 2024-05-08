@@ -1,0 +1,81 @@
+﻿@page "/fetchdata"
+@inject HttpClient Http
+
+<h1>Factura</h1>
+
+<select @bind="SelectedClientId">
+    <option value="">Selecciona un cliente</option>
+    @foreach (var cliente in Clientes)
+    {
+        <option value="@cliente.Id">@cliente.ClienteName</option>
+    }
+</select>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var producto in Productos)
+        {
+            <tr>
+                <td>@producto.Id</td>
+                <td>@producto.Nombre</td>
+                <td>@producto.Precio</td>
+                <td><InputNumber @bind-Value="producto.Cantidad" /></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>Total a pagar: @TotalPagar</div>
+
+<button @onclick="CrearFactura">Crear factura</button>
+
+@code {
+    List<Producto> Productos = new List<Producto>();
+    List<Cliente> Clientes = new List<Cliente>();
+    int SelectedClientId;
+    decimal TotalPagar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Productos = await CargarProductos();
+        Clientes = await CargarClientes();
+        foreach (var producto in Productos)
+        {
+            producto.Cantidad = 0;  
+        }
+    }
+
+    public async Task<List<Producto>> CargarProductos()
+    {
+        return await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+    }
+
+    public async Task<List<Cliente>> CargarClientes()
+    {
+        return await Http.GetFromJsonAsync<List<Cliente>>("api/Cliente");
+    }
+
+    public async Task CalcularTotalPagar()
+    {
+        TotalPagar = Productos.Sum(p => p.Precio * p.Cantidad);
+    }
+
+    public async Task CrearFactura()
+    {
+        await CalcularTotalPagar();
+
+        var productosSeleccionados = Productos.Where(p => p.Cantidad > 0).ToList();
+
+        var fechaActual = DateTime.Now;
+
+    }
+}
+
